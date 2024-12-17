@@ -344,22 +344,25 @@ if cookies.ready():
             # Calculate total stock for each part (stock in - stock out)
             total_stock = {}
             for row in rows:
-                qr_id = row[6]  # qr_id is at index 6
-                cursor.execute('''
-                    SELECT qr_id, 
-                        SUM(CASE WHEN action = 'Stock In' THEN quantity ELSE 0 END) - 
-                        SUM(CASE WHEN action = 'Stock Out' THEN quantity ELSE 0 END)
-                    FROM stock_movements
-                    WHERE qr_id IN ({}) 
-                    GROUP BY qr_id
-                '''.format(','.join(['?']*len(rows))), [row[6] for row in rows])  # Pass all qr_ids
-                total_stock_results = cursor.fetchall()
+                qr_ids = [row[6] for row in rows]
 
-                total_stock = {row[0]: row[1] if row[1] else 0 for row in total_stock_results}
+            # Query to calculate total stock for all qr_ids at once
+            placeholders = ','.join(['?'] * len(qr_ids))
+            cursor.execute(f'''
+                SELECT qr_id, 
+                    SUM(CASE WHEN action = 'Stock In' THEN quantity ELSE 0 END) - 
+                    SUM(CASE WHEN action = 'Stock Out' THEN quantity ELSE 0 END) AS total_stock
+                FROM stock_movements
+                WHERE qr_id IN ({placeholders})
+                GROUP BY qr_id
+            ''', qr_ids)
 
+            # Fetch the results
+            total_stock_results = cursor.fetchall()
 
-            # Add QR codes to each row
-            qr_codes = save_qr_images([row[6] for row in rows])  # qr_id is at index 6
+            # Build the total_stock dictionary: {qr_id: total_stock}
+            total_stock = {qr_id: total if total is not None else 0 for qr_id, total in total_stock_results}
+
 
             # Display headers with Total Stock column (beside QR Code)
             
