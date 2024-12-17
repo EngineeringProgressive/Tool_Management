@@ -391,7 +391,7 @@ if cookies.ready():
                 with col4:
                     st.markdown(f'<div style="text-align: center; display: flex; justify-content: center; align-items: center; width: 100%;" class="small-font">{row[7]}</div>', unsafe_allow_html=True)  # component
                 with col5:
-                    stock_value = total_stock.get(row[2], 0)
+                    stock_value = total_stock.get(row[6], 0)
                     background_color = "background-color: red;" if 0 <= stock_value <= 2 else ""
                     st.markdown(
                         f'<div style="text-align: center; display: flex; justify-content: center; align-items: center; width: 100%; {background_color}" class="small-font">{stock_value}</div>',
