@@ -8,83 +8,91 @@ import datetime
 import pandas as pd #require
 from datetime import datetime
 import bcrypt #require
-from streamlit_cookies_manager import CookieManager #require
+from streamlit_cookies_manager import EncryptedCookieManager #require
 from PIL import Image, ImageDraw, ImageFont
 import os
-import sys
+import uuid
 
+# Read password from environment variables or secrets
+ENCRYPTION_PASSWORD = os.getenv("COOKIE_PASSWORD", "default_fallback_password")
+
+# Initialize cookies manager
+cookies = EncryptedCookieManager(password=ENCRYPTION_PASSWORD)
+
+# Ensure cookies are ready
+if not cookies.ready():
+    st.stop()
+
+# Function to load user credentials from the database
 def get_user_data():
-    """
-    Locate 'password_database.db' in the script's directory (project root).
-    Fetch user data from the database.
-    """
-    # Get the directory where the script is located
     project_dir = os.path.dirname(os.path.abspath(__file__))
-
-    # Define the database file path
     db_path = os.path.join(project_dir, "password_database.db")
 
-    # Check if the database file exists
     if not os.path.isfile(db_path):
         raise FileNotFoundError(f"Database 'password_database.db' not found in: {project_dir}")
 
-    # Connect to the database
     conn = sqlite3.connect(db_path)
     cur = conn.cursor()
-
-    # Query to fetch username and password
-    cur.execute('SELECT username, password FROM table_name')  # Adjust 'users' to your actual table name
+    cur.execute('SELECT username, password FROM table_name')  # Adjust table_name
     users = cur.fetchall()
-
-    # Close the connection
     conn.close()
 
-    # Return a dictionary with username as the key and password as the value
-    return {user[0]: user[1] for user in users}
-    
+    return {user[0]: user[1] for user in users}  # Return user/password pairs
 
-
-# Initialize the cookies manager
-cookies = CookieManager()
-
-# Define hardcoded credentials (In real applications, you'd use a database)
-    
 
 def authenticate_user(username, password, user_data):
     if username in user_data:
         hashed_password = user_data[username]
-        # Use bcrypt to verify the hashed password
         return bcrypt.checkpw(password.encode(), hashed_password.encode())
     return False
 
 
-# Step 1: Login Function
 def login():
-    st.header("Part Management")
     st.header("Login Page")
-    
-    # Load user data from the database
     try:
-        user_data = get_user_data()
+        user_data = get_user_data()  # Fetch user data from database
     except Exception as e:
         st.error(f"Error loading user data: {e}")
-        return  # Stop the login process if there's an error
+        return
 
-    # Collect username and password
     username = st.text_input("Username")
     password = st.text_input("Password", type="password")
 
-    # When the login button is pressed
     if st.button("Login"):
         if authenticate_user(username, password, user_data):
-            # Login success
-            cookies["logged_in"] = "True"  # Set the login status cookie
+            session_id = str(uuid.uuid4())  # Generate unique session ID
+            cookies["session_id"] = session_id  # Store session ID in cookies
+            cookies["username"] = username     # Store username in cookies
             st.session_state["logged_in"] = True
             st.success(f"Welcome, {username}!")
-            st.rerun()  # Refresh the page to load the main content
+            st.rerun()
         else:
-            # Login failure
             st.error("Invalid Username or Password")
+
+
+def check_login_status():
+    if "logged_in" not in st.session_state:
+        st.session_state["logged_in"] = False
+
+    # Check for session_id and username in cookies
+    session_id = cookies.get("session_id")
+    username = cookies.get("username")
+
+    if session_id and username:
+        st.session_state["logged_in"] = True
+    else:
+        st.session_state["logged_in"] = False
+
+    return st.session_state["logged_in"]
+
+
+def logout_user():
+    cookies["session_id"] = ""  # Clear the session cookie
+    cookies["username"] = ""
+    st.session_state["logged_in"] = False
+    st.success("You have been logged out successfully!")
+    st.rerun()
+
 
 # Step 2: Check login status before showing the main content
 if cookies.ready():
@@ -585,4 +593,6 @@ if cookies.ready():
         # Show the login form if the user is not logged in
         login()
 else:
-    st.write("Cookies are not ready yet. Please try again.")
+    st.sidebar.button("Logout", on_click=lambda: logout_user())  # Add logout functionality
+    st.title("Welcome to Part Management")
+    st.write("Your main app goes here.")
