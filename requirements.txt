@@ -1,0 +1,6 @@
+streamlit
+qrcode
+pandas
+bcrypt
+streamlit-cookies-manager
+Pillow
