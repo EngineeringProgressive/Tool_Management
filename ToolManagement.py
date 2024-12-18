@@ -403,9 +403,19 @@ if cookies.ready():
                     st.markdown(f'<div style="text-align: center; display: flex; justify-content: center; align-items: center; width: 100%;" class="small-font">{row[7]}</div>', unsafe_allow_html=True)  # component
                 with col5:
                     stock_value = total_stock.get(row[6], 0)
-                    background_color = "background-color: red;" if 0 <= stock_value <= 2 else ""
+
+                    # Determine the font color based on the stock value
+                    if stock_value <= 1:
+                        font_color = "color: red;"
+                    elif stock_value >= 4:
+                        font_color = "color: red;"  # Red again for 4 or above
+                    elif stock_value >= 2:
+                        font_color = "color: darkgreen;"
+                    else:
+                        font_color = ""
+
                     st.markdown(
-                        f'<div style="text-align: center; display: flex; justify-content: center; align-items: center; width: 100%; {background_color}" class="small-font">{stock_value}</div>',
+                        f'<div style="text-align: center; display: flex; justify-content: center; align-items: center; width: 100%; {font_color}" class="small-font">{stock_value}</div>',
                         unsafe_allow_html=True,
                     )
 
