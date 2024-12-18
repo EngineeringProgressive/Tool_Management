@@ -414,10 +414,12 @@ if cookies.ready():
                     else:
                         font_color = ""
 
+                    # Render the stock value with only font color applied
                     st.markdown(
                         f'<div style="text-align: center; display: flex; justify-content: center; align-items: center; width: 100%; {font_color}" class="small-font">{stock_value}</div>',
                         unsafe_allow_html=True,
                     )
+
 
                 
             # --- Download Entire Parts Table as CSV ---
