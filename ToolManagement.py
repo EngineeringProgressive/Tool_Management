@@ -12,6 +12,10 @@ from streamlit_cookies_manager import EncryptedCookieManager #require
 from PIL import Image, ImageDraw, ImageFont
 import os
 import uuid
+import shutil
+
+shutil.copy("parts_database.db", "parts_database_backup.db")
+
 
 # Read password from environment variables or secrets
 ENCRYPTION_PASSWORD = os.getenv("COOKIE_PASSWORD", "default_fallback_password")
