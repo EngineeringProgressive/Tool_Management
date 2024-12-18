@@ -408,7 +408,7 @@ if cookies.ready():
                     if stock_value <= 1:
                         font_color = "color: red;"
                     elif stock_value >= 4:
-                        font_color = "color: red;"  # Red again for 4 or above
+                        font_color = "color: brown;"  # Red again for 4 or above
                     elif stock_value >= 2:
                         font_color = "color: darkgreen;"
                     else:
