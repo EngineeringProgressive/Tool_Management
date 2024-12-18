@@ -110,17 +110,23 @@ if cookies.ready():
         # Create or connect to the SQLite database
         def get_db_connection():
             """
-            Dynamically locate the 'parts_database.db' in the 'data' folder relative to the script's directory.
+            Connect to the 'parts_database.db' located in the same folder as this script.
+            Creates a backup of the database before connecting.
             """
             # Get the directory where the script is located
             project_dir = os.path.dirname(os.path.abspath(__file__))
 
-            # Define the path to the database file in the 'data' folder
+            # Define the path to the database file
             db_path = os.path.join(project_dir, "parts_database.db")
 
             # Check if the database file exists
             if not os.path.isfile(db_path):
-                raise FileNotFoundError(f"Database 'parts_database.db' not found in: {os.path.join(project_dir, 'data')}")
+                raise FileNotFoundError(f"Database 'parts_database.db' not found in: {project_dir}")
+
+            # Create a backup of the database
+            backup_path = os.path.join(project_dir, "parts_database_backup.db")
+            shutil.copy(db_path, backup_path)
+            print(f"Backup created at: {backup_path}")
 
             # Connect to the database
             conn = sqlite3.connect(db_path)
