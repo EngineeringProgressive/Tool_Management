@@ -1,3 +1,7 @@
+# Ignore database files
+parts_database.db
+password_database.db
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
